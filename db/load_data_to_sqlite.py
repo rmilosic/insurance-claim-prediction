@@ -20,9 +20,9 @@ def main(file_path):
         index=False
     )
     print(f"file at path {file_path} successfully writen to sqlite db"
-
-
     )
+
+
 
 
 if __name__ == "__main__":

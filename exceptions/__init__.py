@@ -1,0 +1,3 @@
+
+class CarYearException(Exception):
+    pass
