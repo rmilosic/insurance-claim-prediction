@@ -5,3 +5,5 @@ venv
 .idea
 data/raw
 db/test.db
+.envrc
+.env
