@@ -5,12 +5,12 @@ import dash_bootstrap_components as dbc
 
 from callback import register_callbacks
 import layouts
-from models import FeaturesData
 
-features_data = FeaturesData.load()
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LITERA], suppress_callback_exceptions=True)
 server = app.server     # the Flask app
+
+
 
 app.layout = html.Div(
     style={"backgroundColor": "#fafafa"},

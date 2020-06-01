@@ -3,8 +3,10 @@ from datetime import datetime
 import dash_core_components as dcc
 
 from components import filter_layout
-from app import features_data
 
+from models import FeaturesData
+
+features_data = FeaturesData.load()
 
 unique_blind_makes = features_data[features_data["Blind_Make"].notnull()]["Blind_Make"].sort_values().unique()
 car_make_select_component = dcc.Dropdown(
