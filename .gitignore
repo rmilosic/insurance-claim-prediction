@@ -4,6 +4,5 @@ venv
 .DS_Store
 .idea
 data/raw
-db/test.db
 .envrc
 .env
