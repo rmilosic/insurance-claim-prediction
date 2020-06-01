@@ -2,7 +2,7 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 
-from layouts import model_filters
+from layouts import model_filters, detail_display
 
 main_layout = [
     dbc.Row(
@@ -13,10 +13,11 @@ main_layout = [
                     dbc.CardBody(
                         [
                             html.H5("Car Insurance Claim Simulation", className="card-title"),
-                            html.P(
-                                "This is a simple interface to simulate expected value and disribution of claim "
-                                "amount depending on a few parameters. Under the hood of the simulation is a "
-                                "TweedieRegressor model with Power parameter 1.5 ",
+                            dcc.Markdown(
+                                "This is a simple interface to simulate the **expected value and distribution of claim "
+                                "amount** by selected parameters. Other model parameters are randomly sampled from the"
+                                "original dataset. Under the hood of the simulation is a **TweedieRegressor** model with a"
+                                " Power parameter 1.5. ",
                                 className="card-text",
                             ),
                             dbc.Button(
@@ -35,13 +36,20 @@ main_layout = [
         className="justify-content-between",
         children=[
             dbc.Col(
-                md=8,
+                md=6,
                 className="shadow-sm bg-white",
                 children=[
-                    dcc.Graph(
-                        id="trend-graph-absolute"
-                    )
+                    dcc.Loading(
+                        id="loading-div",
+                        type="circle",
+                        children=dcc.Graph()
+                    ),
+
                 ]
+            ),
+            dbc.Col(
+                md=2,
+                children=detail_display.layout
             ),
 
             dbc.Col(

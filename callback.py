@@ -1,49 +1,62 @@
-from dash.dependencies import Input, Output
-import plotly.graph_objects as go
-import dash_table
+import numpy as np
+from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
+import plotly.figure_factory as ff
+import dash_core_components as dcc
+
+from models.claim_amount.tweedie_regressor import TweedieClaimModel
+
+tweedie_model = TweedieClaimModel()
 
 
 def register_callbacks(app):
+
     """
     Register app callbacks
     """
-    pass
-    # @app.callback(
-    #     Output('trend-graph-absolute', 'figure'),
-    #     [
-    #         Input('aggregate-value-radio', 'value'),
-    #         Input('atc-level-dropdown', 'value')
-    #     ]
-    # )
-    # def update_main_graph(aggregate_value_name: str, atc_level: int):
-    #
-    #     df2 = df.loc[df[aggregate_value_name] > 0]
-    #
-    #     df_pivot = df2.pivot_table(
-    #         index=["leto", atc_level],
-    #         values=aggregate_value_name,
-    #         aggfunc=sum
-    #     ).unstack(1)
-    #
-    #     categoryarray = df_pivot.loc[df_pivot.index.max()].sort_values(ascending=False).index
-    #
-    #     fig = go.Figure()
-    #
-    #     for col in categoryarray:
-    #
-    #         fig.add_trace(
-    #             go.Bar(
-    #                 x=df_pivot.index.to_list(), y=df_pivot[col].to_list(), name=print_name(col[1])
-    #             )
-    #         )
-    #
-    #     fig.update_layout(
-    #         title="Pregled porabe po ATC skupinah",
-    #         barmode='stack',
-    #         xaxis={'categoryorder': 'sum descending', "tickmode": "linear"},
-    #         legend_orientation="v",
-    #         legend={"font": {"size": 9}})
-    #
-    #     return fig
-    #
-    #     }
+    @app.callback(
+        [
+        # Output('simulation-graph', 'figure'),
+         Output('mean-expected-value', 'children'),
+         Output('loading-div', 'children')],
+        [Input('submit-model-simulation', 'n_clicks')],
+        [State('make-select', 'value'),
+         State('year-select', 'value'),
+         State('no-simulations-slider', 'value')]
+    )
+    def update_simulation_graph(n_clicks, make_select_val, year_select_val, no_sim_val):
+        """
+        Parameters
+        n_clicks: int
+            number of button clicks
+        make_select_val: str
+            car make
+        year_select_val: int
+            model year
+        no_sim_val:
+            number of simulations
+        """
+
+        if n_clicks == 0:
+            raise PreventUpdate
+
+        y_pred = tweedie_model.batch_predict(
+            car_make=make_select_val,
+            car_year=year_select_val,
+            n_simulations=no_sim_val
+        )
+
+        # figure needs list of lists as input data
+        hist_data = [y_pred]
+
+        fig = ff.create_distplot(hist_data, bin_size=.05, group_labels=["Predicted values"],
+                                 show_curve=True)
+
+        # Add title
+        fig.update_layout(
+            title_text=f'Distribution of predicted expected values N={no_sim_val}',
+            legend={"orientation": "h"}
+        )
+        # calculate expected value
+        ev = np.round(y_pred.mean(), decimals=3)
+        return ev, dcc.Graph(figure=fig)

@@ -1,3 +1,6 @@
+from exceptions import CarYearException
+from models import FeaturesData
+
 import os
 from datetime import datetime
 from joblib import load
@@ -6,7 +9,6 @@ import numpy as np
 from db import db
 
 dirname = os.path.dirname(__file__)
-from exceptions import CarYearException
 
 
 class TweedieClaimModel:
@@ -18,26 +20,15 @@ class TweedieClaimModel:
         self.col_transformer = load(os.path.join(artifacts_path, "column_transformer_2020-05-31 19:09.joblib"))
         self.model = load(os.path.join(artifacts_path, "Tweedie_Regressor_2020-05-31 19:09.joblib"))
 
-        try:
-            # create connection to sqlite db file
-            conn = db.connect()
-
-            # load feature data from sqlite
-            df = pd.read_sql_table(
-                table_name="features",  # table name
-                con=conn
-            )
-        except Exception as e:
-            raise e
-        finally:
-            conn.close()
-
+        df = FeaturesData.load()
         # build empty dictionary from features
-        self.features = {col: np.nan for col in df.columns}
+        self.features_names = df.columns
+        self.features_data = df.to_records()
 
-    def predict(self, car_make, car_year):
+    def batch_predict(self, car_make, car_year, n_simulations):
         """
-        Predicts the expected claim amount from inputs
+        Predicts the expected claim amount from inputs and random sampling
+        from other independent variables
 
         Parameters
         ----------
@@ -45,6 +36,8 @@ class TweedieClaimModel:
             encoded car make ("AK")
         car_year: int
             e.g. 2000
+        n_simulations: int
+            number of random samples
 
         Returns
         ---------
@@ -61,19 +54,23 @@ class TweedieClaimModel:
         # get age from this year and registration year
         car_age = this_year - car_year
 
-        features = self.features.copy()
-
-        features["Car_Age"] = car_age
-        features["Blind_Make"] = car_make
-
-        X = pd.DataFrame(
-            index=[0],
-            columns=features.keys(),
-            data=features
+        # create new dataframe with sampling of original features
+        df = pd.DataFrame(
+            columns=self.features_names,
+            data=self.features_data
         )
+        # sample from df based on n_simulations
+        df = df.sample(
+            n=n_simulations,
+            axis=0,
+            replace=False
+        )
+        # overwrite input parameters
+        df["Car_Age"] = car_age
+        df["Blind_Make"] = car_make
 
-        print(X)
-        X_tf = self.col_transformer.transform(X)
+        print(df)
+        X_tf = self.col_transformer.transform(df)
 
         y_pred = self.model.predict(X_tf)
 

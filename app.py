@@ -1,18 +1,13 @@
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
-import pandas as pd
 import dash_bootstrap_components as dbc
 
 from callback import register_callbacks
-from components import navigation
 import layouts
+from models import FeaturesData
 
-
-# # load data
-# df = pd.read_csv("data/processed/final_dataset_10_19.csv", encoding="utf-8")
-#
-# years = df.leto.unique()
+features_data = FeaturesData.load()
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LITERA], suppress_callback_exceptions=True)
 server = app.server     # the Flask app
