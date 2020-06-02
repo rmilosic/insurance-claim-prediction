@@ -15,9 +15,9 @@ main_layout = [
                             html.H5("Car Insurance Claim Simulation", className="card-title"),
                             dcc.Markdown(
                                 "This is a simple interface to simulate the **expected value and distribution of claim "
-                                "amount** by selected parameters. Other model parameters are randomly sampled from the"
-                                "original dataset. Under the hood of the simulation is a **TweedieRegressor** model with a"
-                                " Power parameter 1.5. ",
+                                "amounts** on car insurance policy with selected parameters. Other model parameters "
+                                "are randomly sampled from the original dataset. Under the hood of the simulation is a "
+                                "**TweedieRegressor** model with a Power parameter of 1.5.",
                                 className="card-text",
                             ),
                             dbc.Button(
